@@ -1,6 +1,13 @@
 Function Get-BcAgentInstallPath {
-    [cmdletbinding()]
+    [OutputType([System.IO.DirectoryInfo], ParameterSetName = 'dirInfo')]
+    [OutputType([System.String], ParameterSetName = 'str')]
+    [cmdletbinding(
+        DefaultParameterSetName = 'dirInfo'
+    )]
     param (
+        [Parameter(
+            ParameterSetName = 'str'
+        )]
         [switch]$AsString
     )
     if ($AsString.IsPresent) {
