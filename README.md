@@ -1,5 +1,7 @@
 # BrazenCloud Powershell Action Developer Kit
 
+[![Runway](https://img.shields.io/powershellgallery/v/BrazenCloud.ADK.svg?style=flat-square&label=BrazenCloud.ADK "BrazenCloud.ADK")](https://www.powershellgallery.com/packages/BrazenCloud.ADK/)
+
 BrazenCloud's Action Developer Kit provides many useful functions for streamlining Action development.
 
 You can check out our [Action development guide in the documentation](https://docs.runway.host/runway-documentation/action-developer-guides/overview)
