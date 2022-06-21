@@ -8,7 +8,7 @@ Function Invoke-BcAction {
                 if (Test-Path $_ -PathType Leaf) {
                     $_ -like '*manifest.txt'
                 } elseif (Test-Path $_ -PathType Container) {
-                    Test-Path $_\manifest.txt -PathType Leaf 
+                    Test-Path $_\manifest.txt -PathType Leaf
                 }
             }
         )]
@@ -27,6 +27,8 @@ Function Invoke-BcAction {
         [hashtable]$Settings,
         [switch]$PreserveWorkingDir
     )
+    $ip = $InformationPreference
+    $InformationPreference = 'Continue'
     $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
 
     # If the path is a folder, append manifest.txt
@@ -46,7 +48,7 @@ Function Invoke-BcAction {
     if (Test-Path $WorkingDir) {
         Remove-Item $WorkingDir -Recurse -Force
     }
-    
+
     # Build Action
     $buildSplat = @{
         Path                   = 'cmd.exe'
@@ -83,12 +85,12 @@ Function Invoke-BcAction {
     $stdOut = & {
         while ($null -ne ($line = $reader.ReadLine())) {
             $line
-            Write-Host $line
+            Write-Information $line
         }
         while (-not $actionProc.HasExited) {
             while ($null -ne ($line = $reader.ReadLine())) {
                 $line
-                Write-Host $line
+                Write-Information $line
             }
             Start-Sleep -Seconds 1
         }
@@ -121,4 +123,5 @@ Function Invoke-BcAction {
     if (-not ($PreserveWorkingDir.IsPresent)) {
         remove-Item $WorkingDir -Recurse -Force
     }
+    $InformationPreference = $ip
 }
