@@ -23,14 +23,19 @@ Function Invoke-BcAction {
             ParameterSetName = 'folderAction'
         )]
         [string]$UtilityPath,
-        [string]$WorkingDir
+        [string]$WorkingDir,
+        [hashtable]$Settings
     )
     $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
 
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
+        $sPath = "$path\settings.json"
         $Path = "$Path\manifest.txt"
+    } else {
+        $sPath = "$(Split-Path $path)\settings.json"
     }
+    $Settings | ConvertTo-Json | Out-File $sPath
 
     # If no working dir is passed, use something in TEMP
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
@@ -43,6 +48,9 @@ Function Invoke-BcAction {
     
     # Build Action
     Invoke-Command -ScriptBlock ([scriptblock]::Create("$UtilityPath -N build -i $Path -o $($env:TEMP)\action.app") )
+
+    # Remove settings.json
+    Remove-Item $sPath -Force
 
     # Run Action
     $actionProc = Start-Process cmd.exe -ArgumentList "/C .\runner.exe run --action_zip $($env:TEMP)\action.app --path $WorkingDir" -WorkingDirectory $agentPath -WindowStyle Hidden -PassThru -RedirectStandardError .\stderr.txt -RedirectStandardOutput stdout.txt
