@@ -1,4 +1,4 @@
-Function New-BcSettingsHashtable {
+Function Join-BcSettingsHashtable {
     [cmdletbinding()]
     param (
         [string]$AgentPath,

@@ -42,7 +42,7 @@ Function Invoke-BcAction {
         AgentPath  = $agentPath
         Parameters = $Settings
     }
-    New-BcSettingsHashtable @splat | ConvertTo-Json | Out-File $sPath
+    Join-BcSettingsHashtable @splat | ConvertTo-Json | Out-File $sPath
 
     # If no working dir is passed, use something in TEMP
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
