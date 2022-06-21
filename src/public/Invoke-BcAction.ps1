@@ -38,7 +38,11 @@ Function Invoke-BcAction {
     } else {
         $sPath = "$(Split-Path $path)\settings.json"
     }
-    $Settings | ConvertTo-Json | Out-File $sPath
+    $splat = @{
+        AgentPath  = $agentPath
+        Parameters = $Settings
+    }
+    New-BcSettingsHashtable @splat | ConvertTo-Json | Out-File $sPath
 
     # If no working dir is passed, use something in TEMP
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
@@ -59,7 +63,7 @@ Function Invoke-BcAction {
         RedirectStandardError  = '.\buildstderr.txt'
         RedirectStandardOutput = '.\buildstdout.txt'
     }
-    $actionProc = Start-Process @buildSplat
+    $actionProc = Start-Process @buildSplat -Wait
 
     # Remove settings.json
     Remove-Item $sPath -Force
