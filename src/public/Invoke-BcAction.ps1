@@ -47,13 +47,31 @@ Function Invoke-BcAction {
     }
     
     # Build Action
-    Invoke-Command -ScriptBlock ([scriptblock]::Create("$UtilityPath -N build -i $Path -o $($env:TEMP)\action.app") )
+    $buildSplat = @{
+        Path                   = 'cmd.exe'
+        ArgumentList           = "/C .\runway.exe -N build -i $Path -o $($env:TEMP)\action.app"
+        WorkingDirectory       = (Split-Path $UtilityPath)
+        WindowStyle            = 'Hidden'
+        PassThru               = $true
+        RedirectStandardError  = '.\buildstderr.txt'
+        RedirectStandardOutput = '.\buildstdout.txt'
+    }
+    $actionProc = Start-Process @buildSplat
 
     # Remove settings.json
     Remove-Item $sPath -Force
 
     # Run Action
-    $actionProc = Start-Process cmd.exe -ArgumentList "/C .\runner.exe run --action_zip $($env:TEMP)\action.app --path $WorkingDir" -WorkingDirectory $agentPath -WindowStyle Hidden -PassThru -RedirectStandardError .\stderr.txt -RedirectStandardOutput stdout.txt
+    $runSplat = @{
+        Path                   = 'cmd.exe'
+        ArgumentList           = "/C .\runner.exe run --action_zip $($env:TEMP)\action.app --path $WorkingDir"
+        WorkingDirectory       = $agentPath
+        WindowStyle            = 'Hidden'
+        PassThru               = $true
+        RedirectStandardError  = '.\runstderr.txt'
+        RedirectStandardOutput = '.\runstdout.txt'
+    }
+    $actionProc = Start-Process @runSplat
 
     # Stream std.out
     While (-not (Test-Path $WorkingDir\std.out)) {
@@ -61,14 +79,38 @@ Function Invoke-BcAction {
     }
     $stream = [System.IO.File]::Open("$WorkingDir\std.out", [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
     $reader = [System.IO.StreamReader]::new($stream)
-    while ($null -ne ($line = $reader.ReadLine())) {
-        $line
-    }
-    while (-not $actionProc.HasExited) {
+    $stdOut = & {
         while ($null -ne ($line = $reader.ReadLine())) {
             $line
+            Write-Host $line
         }
-        Start-Sleep -Seconds 1
+        while (-not $actionProc.HasExited) {
+            while ($null -ne ($line = $reader.ReadLine())) {
+                $line
+                Write-Host $line
+            }
+            Start-Sleep -Seconds 1
+        }
     }
     $reader.Close()
+
+    # Collect results
+    $resultPath = "$($env:TEMP)\actiontest_results.zip"
+    Compress-Archive "$($env:TEMP)\actiontest\results" -DestinationPath $resultPath
+
+    [pscustomobject]@{
+        Build   = @{
+            StdOut = Get-Content .\buildstdout.txt
+            StdErr = Get-Content .\buildstderr.txt
+        }
+        Run     = @{
+            StdOut = Get-Content .\runstdout.txt
+            StdErr = Get-Content .\runstderr.txt
+        }
+        Results = Get-Item $resultPath
+        StdOut  = $stdOut
+    }
+    @('buildstdout.txt', 'buildstderr.txt', 'runstdout.txt', 'runstderr.txt') | ForEach-Object {
+        Remove-Item ".\$_" -ErrorAction SilentlyContinue -Force
+    }
 }
