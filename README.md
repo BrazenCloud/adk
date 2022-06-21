@@ -2,6 +2,8 @@
 
 BrazenCloud's Action Developer Kit provides many useful functions for streamlining Action development.
 
+You can check out our [Action development guide in the documentation](https://docs.runway.host/runway-documentation/action-developer-guides/overview)
+
 ## Install the module
 
 The module can be installed from the PowerShell Gallery:
