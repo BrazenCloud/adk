@@ -72,3 +72,13 @@ Running `Invoke-BcAction` produces a custom `PSObject` that has the following pr
 ## Problems
 
 If you run into any problems using the ADK, please reach out to our [Support Team](mailto:support@brazencloud.io) or open an issue in this repository.
+
+## Changelog
+
+### 0.0.2
+
+- Improves the `settings.json` impersonation to include values from the local system.
+
+### 0.0.1
+
+- Initial release, supports local action testing.
