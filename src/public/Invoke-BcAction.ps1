@@ -24,7 +24,8 @@ Function Invoke-BcAction {
         )]
         [string]$UtilityPath,
         [string]$WorkingDir,
-        [hashtable]$Settings
+        [hashtable]$Settings,
+        [switch]$PreserveWorkingDir
     )
     $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
 
@@ -110,7 +111,14 @@ Function Invoke-BcAction {
         Results = Get-Item $resultPath
         StdOut  = $stdOut
     }
+
+    # Clean up redirects
     @('buildstdout.txt', 'buildstderr.txt', 'runstdout.txt', 'runstderr.txt') | ForEach-Object {
         Remove-Item ".\$_" -ErrorAction SilentlyContinue -Force
+    }
+
+    # Clean up workingDir
+    if (-not ($PreserveWorkingDir.IsPresent)) {
+        remove-Item $WorkingDir -Recurse -Force
     }
 }
