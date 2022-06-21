@@ -45,6 +45,30 @@ $settings = @{
 $out = Invoke-BcAction -Path C:\path\to\action -UtilityPath C:\path\to\runway.exe -Settings $settings -PreserveWorkingDir
 ```
 
+### Output
+
+Running `Invoke-BcAction` produces a custom `PSObject` that has the following properties:
+
+```json
+{
+    "Build": {
+        "StdErr": "",
+        "StdOut": ""
+    },
+    "Run": {
+        "StdErr": "",
+        "StdOut": ""
+    },
+    "Results": "",
+    "StdOut": ""
+}
+```
+
+- The `Build` property contains the stderr and stdout from building the Action using `runway build`
+- The `Run` property contains the stderr and stdout from running the Action using `runner run`
+- The `Results` property contains the `FileInfo` object for the results file.
+- The `StdOut` property contains the entire stdout for the Action execution.
+
 ## Problems
 
 If you run into any problems using the ADK, please reach out to our [Support Team](mailto:support@brazencloud.io) or open an issue in this repository.
