@@ -1,0 +1,30 @@
+[
+    {
+        "Name": "Sample String Parameter",
+        "Type": 0,
+        "DefaultValue": "Default value, not required",
+        "Description": "This displays in the tool tip popup of the Action UI.",
+        "IsOptional": true
+    },
+    {
+        "Name": "Sample Number Parameter",
+        "Type": 1,
+        "DefaultValue": "Default value, not required",
+        "Description": "This displays in the tool tip popup of the Action UI.",
+        "IsOptional": true
+    },
+    {
+        "Name": "Sample Boolean Parameter",
+        "Type": 2,
+        "DefaultValue": "Default value, not required (true or false)",
+        "Description": "This displays in the tool tip popup of the Action UI.",
+        "IsOptional": true
+    },
+    {
+        "Name": "Sample Password Parameter",
+        "Type": 3,
+        "DefaultValue": "Default value, not required",
+        "Description": "This displays in the tool tip popup of the Action UI.",
+        "IsOptional": true
+    }
+]

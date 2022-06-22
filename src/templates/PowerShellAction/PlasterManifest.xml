@@ -9,7 +9,7 @@
         <title>BrazenCloudPowershellAction</title>
         <description>Scaffolds a BrazenCloud PowerShell Action</description>
         <author>Anthony Howell</author>
-        <tags>PowerShell, BrazenCloud</tags>
+        <tags>PowerShell, BrazenCloud, Action</tags>
     </metadata>
     <parameters>
         <parameter name='ActionName'
