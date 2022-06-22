@@ -4,7 +4,7 @@
     xmlns="http://www.microsoft.com/schemas/PowerShell/Plaster/v1">
     <metadata>
         <name>BrazenCloudPowershellConnector</name>
-        <id>be65ef8f-0fbf-4716-b232-cd34d3230349</id>
+        <id>8b154a29-aaa6-4eaa-83a5-a48d4a664da3</id>
         <version>0.0.1</version>
         <title>BrazenCloudPowershellConnector</title>
         <description>Scaffolds a BrazenCloud PowerShell Connector</description>
