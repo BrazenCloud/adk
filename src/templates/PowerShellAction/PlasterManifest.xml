@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plasterManifest schemaVersion="1.1"
+    templateType="Project"
+    xmlns="http://www.microsoft.com/schemas/PowerShell/Plaster/v1">
+    <metadata>
+        <name>BrazenCloudPowershellAction</name>
+        <id>be65ef8f-0fbf-4716-b232-cd34d3230349</id>
+        <version>0.0.1</version>
+        <title>BrazenCloudPowershellAction</title>
+        <description>Scaffolds a BrazenCloud PowerShell Action</description>
+        <author>Anthony Howell</author>
+        <tags>PowerShell, BrazenCloud</tags>
+    </metadata>
+    <parameters>
+        <parameter name='ActionName'
+            type='text'
+            prompt='Name of the Action'/>
+    </parameters>
+    <content>
+        <message>
+            Creating folder structure
+        </message>
+        <file source=''
+            destination='${PLASTER_PARAM_ActionName}'/>
+        <file source=''
+            destination='${PLASTER_PARAM_ActionName}/windows'/>
+        <file source=''
+            destination='${PLASTER_PARAM_ActionName}/linux'/>
+        <message>
+            Deploying common files
+        </message>
+        <file source='parameters.json'
+            destination='${PLASTER_PARAM_ActionName}/parameters.json'/>
+        <file source='repository.json'
+            destination='${PLASTER_PARAM_ActionName}/repository.json'/>
+        <file source='powershell-manifest.txt'
+            destination='${PLASTER_PARAM_ActionName}/manifest.txt'/>
+        <file source='script.ps1'
+            destination='${PLASTER_PARAM_ActionName}/windows/script.ps1'/>
+        <file source='script.ps1'
+            destination='${PLASTER_PARAM_ActionName}/linux/script.ps1'/>
+    </content>
+</plasterManifest>
