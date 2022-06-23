@@ -1,9 +1,0 @@
-{
-    "Description": "Description of the Action. Displays in the repository API endpoint and in the Action page of the UI.",
-    "Language": "PowerShell",
-    "Tags": [
-        "JSON",
-        "String",
-        "Array"
-    ]
-}

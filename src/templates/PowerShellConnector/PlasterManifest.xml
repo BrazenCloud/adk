@@ -29,17 +29,17 @@
         <message>
             Deploying common files
         </message>
-        <file source='parameters.json'
+        <file source='..\PowerShellAction\parameters.json'
             destination='${PLASTER_PARAM_ConnectorName}/parameters.json'/>
-        <file source='repository.json'
+        <file source='..\PowerShellAction\repository.json'
             destination='${PLASTER_PARAM_ConnectorName}/repository.json'/>
         <file source='execution.json'
             destination='${PLASTER_PARAM_ConnectorName}/execution.json'/>
-        <file source='powershell-manifest.txt'
+        <file source='..\PowerShellAction\powershell-manifest.txt'
             destination='${PLASTER_PARAM_ConnectorName}/manifest.txt'/>
-        <file source='script.ps1'
+        <file source='..\PowerShellAction\script.ps1'
             destination='${PLASTER_PARAM_ConnectorName}/windows/script.ps1'/>
-        <file source='script.ps1'
+        <file source='..\PowerShellAction\script.ps1'
             destination='${PLASTER_PARAM_ConnectorName}/linux/script.ps1'/>
     </content>
 </plasterManifest>
