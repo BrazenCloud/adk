@@ -32,7 +32,11 @@ task DocBuild ModuleBuild, {
 
 # Build the module
 task ModuleBuild Clean, {
-    $moduleScriptFiles = Get-ChildItem $srcPath -Filter *.ps1 -File -Recurse
+    $moduleScriptFiles = & {
+        Get-ChildItem $srcPath\private -Filter *.ps1 -File -Recurse
+        Get-ChildItem $srcPath\public -Filter *.ps1 -File -Recurse
+        Get-ChildItem $srcPath -Filter *.ps1 -File
+    }
     if (-not(Test-Path $modulePath)) {
         New-Item $modulePath -ItemType Directory
     }
@@ -63,6 +67,9 @@ task ModuleBuild Clean, {
 
     # Copy any .dlls
     Copy-Item $PSScriptRoot\lib -Destination $modulePath -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Copy the templates
+    Copy-Item $srcPath\templates -Destination $modulePath -Recurse
 
     # Copy the manifest
     Copy-Item "$srcPath\$moduleName.psd1" -Destination $modulePath
