@@ -25,9 +25,9 @@ Function Invoke-BcAction {
             ParameterSetName = 'folderAction'
         )]
         [string]$UtilityPath,
-        [string]$WorkingDir,
+        [string]$WorkingDirectory,
         [hashtable]$Settings,
-        [switch]$PreserveWorkingDir,
+        [switch]$PreserveWorkingDirectory,
         [switch]$IgnoreRequiredParameters
     )
     $ip = $InformationPreference
