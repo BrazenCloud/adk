@@ -27,7 +27,8 @@ Function Invoke-BcAction {
         [string]$UtilityPath,
         [string]$WorkingDir,
         [hashtable]$Settings,
-        [switch]$PreserveWorkingDir
+        [switch]$PreserveWorkingDir,
+        [switch]$IgnoreRequiredParameters
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
@@ -64,6 +65,18 @@ Function Invoke-BcAction {
 
     if (Test-Path "$($env:TEMP)\action.app") {
         Remove-Item "$($env:TEMP)\action.app" -Force
+    }
+
+    if (-not $IgnoreRequiredParameters.IsPresent) {
+        $parametersPath = "$(Split-Path $Path)\parameters.json"
+        if (Test-Path $parametersPath) {
+            $params = Get-Content $parametersPath | ConvertFrom-Json
+            $params | Where-Object { $_.PSObject.Properties.Name -contains 'IsOptional' } | Where-Object { $_.IsOptional.ToString() -eq 'false' } | ForEach-Object {
+                if ($Settings.Keys -notcontains $_.Name) {
+                    Throw "Mandatory parameter: '$($_.Name)' was not provided. Pass a value via -Settings or use -IgnoreRequiredParameters"
+                }
+            }
+        }
     }
 
     # Build Action
