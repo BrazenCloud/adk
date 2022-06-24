@@ -75,6 +75,11 @@ Function Invoke-BcAction {
     Write-Verbose 'Building the action...'
     $actionProc = Start-Process @buildSplat -Wait
 
+    $buildStdErr = Get-Content "$($env:TEMP)\buildstderr_$actionRun.txt"
+    if ($buildStdErr.Length -gt 0) {
+        Throw "Error in build: $buildStdErr"
+    }
+
     # Remove settings.json
     Remove-Item $sPath -Force
 
@@ -117,7 +122,7 @@ Function Invoke-BcAction {
     $reader.Close()
 
     # Collect results
-    $resultPath = "$($env:TEMP)\$actionRun.zip"
+    $resultPath = "$($env:TEMP)\Results_$actionRun.zip"
     if (Test-Path $resultPath) {
         Write-Verbose 'The results file already exists, overwrite?'
         if ($PSCmdlet.ShouldProcess($resultPath, 'Remove-Item')) {
@@ -140,7 +145,7 @@ Function Invoke-BcAction {
     }
 
     # Clean up redirects
-    @("buildstdout_$actionRun.txt", "buildstderr_$actionRun.txt", "runstdout_$actionRun.txt", "runstderr_$actionRun.txt") | ForEach-Object {
+    @("buildstdout_*.txt", "buildstderr_*.txt", "runstdout_*.txt", "runstderr_*.txt") | ForEach-Object {
         Remove-Item "$($env:TEMP)\$_" -ErrorAction SilentlyContinue -Force
     }
 
