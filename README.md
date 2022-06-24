@@ -75,7 +75,7 @@ If you run into any problems using the ADK, please reach out to our [Support Tea
 
 ## Changelog
 
-### 0.0.3
+### 0.1.0
 
 - Added templates for PowerShell based Actions
 - `Invoke-BcAction` improvements:
