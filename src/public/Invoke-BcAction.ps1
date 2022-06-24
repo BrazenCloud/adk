@@ -48,7 +48,7 @@ Function Invoke-BcAction {
 
     # If no working dir is passed, use something in TEMP
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
-        $WorkingDir = "$($env:TEMP)\actiontest"
+        $WorkingDir = "$($env:TEMP)\Action_$(Get-Date -UFormat %s)"
     }
 
     if (Test-Path $WorkingDir) {
@@ -119,9 +119,9 @@ Function Invoke-BcAction {
             Remove-Item $resultPath -Recurse -Force
         }
     }
-    Compress-Archive "$($env:TEMP)\actiontest\results" -DestinationPath $resultPath
+    Compress-Archive "$WorkingDir\results" -DestinationPath $resultPath
 
-    [pscustomobject]@{
+    $out = [pscustomobject]@{
         Build   = @{
             StdOut = Get-Content .\buildstdout.txt
             StdErr = Get-Content .\buildstderr.txt
@@ -142,6 +142,8 @@ Function Invoke-BcAction {
     # Clean up workingDir
     if (-not ($PreserveWorkingDir.IsPresent)) {
         Remove-Item $WorkingDir -Recurse -Force
+    } else {
+        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value Get-Item $WorkingDir
     }
     $InformationPreference = $ip
 }
