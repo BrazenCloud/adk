@@ -1,6 +1,3 @@
-# suppressing the warning from the scriptblock
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
-param()
 Function New-BcAction {
     [cmdletbinding(SupportsShouldProcess)]
     param (
@@ -22,11 +19,3 @@ Function New-BcAction {
     }
     Invoke-Plaster -TemplatePath $PSScriptRoot\templates\$TemplateName -DestinationPath $Destination
 }
-
-# Argument completer
-$scriptBlock = {
-    param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-    Get-ChildItem $PSScriptRoot\templates\$wordToComplete* | Select-Object -ExpandProperty Name
-}
-Register-ArgumentCompleter -CommandName New-BcAction -ParameterName TemplateName -ScriptBlock $scriptBlock
