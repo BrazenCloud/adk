@@ -1,5 +1,8 @@
+# suppressing the warning from the scriptblock
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '')]
+param()
 Function New-BcAction {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess)]
     param (
         [string]$TemplateName = 'PowerShellAction',
         [Parameter(
