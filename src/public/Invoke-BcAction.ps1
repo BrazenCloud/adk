@@ -47,8 +47,9 @@ Function Invoke-BcAction {
     Join-BcSettingsHashtable @splat | ConvertTo-Json | Out-File $sPath
 
     # If no working dir is passed, use something in TEMP
+    $actionRun = "Action_$(Get-Date -UFormat %s)"
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
-        $WorkingDir = "$($env:TEMP)\Action_$(Get-Date -UFormat %s)"
+        $WorkingDir = "$($env:TEMP)\$actionRun"
     }
 
     if (Test-Path $WorkingDir) {
@@ -68,8 +69,8 @@ Function Invoke-BcAction {
         WorkingDirectory       = (Split-Path $UtilityPath)
         WindowStyle            = 'Hidden'
         PassThru               = $true
-        RedirectStandardError  = '.\buildstderr.txt'
-        RedirectStandardOutput = '.\buildstdout.txt'
+        RedirectStandardError  = "$($env:TEMP)\buildstderr_$actionRun.txt"
+        RedirectStandardOutput = "$($env:TEMP)\buildstdout_$actionRun.txt"
     }
     Write-Verbose 'Building the action...'
     $actionProc = Start-Process @buildSplat -Wait
@@ -84,8 +85,8 @@ Function Invoke-BcAction {
         WorkingDirectory       = $agentPath
         WindowStyle            = 'Hidden'
         PassThru               = $true
-        RedirectStandardError  = '.\runstderr.txt'
-        RedirectStandardOutput = '.\runstdout.txt'
+        RedirectStandardError  = "$($env:TEMP)\runstderr_$actionRun.txt"
+        RedirectStandardOutput = "$($env:TEMP)\runstdout_$actionRun.txt"
     }
     Write-Verbose 'Running the action...'
     $actionProc = Start-Process @runSplat
@@ -112,7 +113,7 @@ Function Invoke-BcAction {
     $reader.Close()
 
     # Collect results
-    $resultPath = "$($env:TEMP)\actiontest_results.zip"
+    $resultPath = "$($env:TEMP)\$actionRun.zip"
     if (Test-Path $resultPath) {
         Write-Verbose 'The results file already exists, overwrite?'
         if ($PSCmdlet.ShouldProcess($resultPath, 'Remove-Item')) {
@@ -123,27 +124,28 @@ Function Invoke-BcAction {
 
     $out = [pscustomobject]@{
         Build   = @{
-            StdOut = Get-Content .\buildstdout.txt
-            StdErr = Get-Content .\buildstderr.txt
+            StdOut = Get-Content "$($env:TEMP)\buildstdout_$actionRun.txt"
+            StdErr = Get-Content "$($env:TEMP)\buildstderr_$actionRun.txt"
         }
         Run     = @{
-            StdOut = Get-Content .\runstdout.txt
-            StdErr = Get-Content .\runstderr.txt
+            StdOut = Get-Content "$($env:TEMP)\runstdout_$actionRun.txt"
+            StdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
         }
         Results = Get-Item $resultPath
         StdOut  = $stdOut
     }
 
     # Clean up redirects
-    @('buildstdout.txt', 'buildstderr.txt', 'runstdout.txt', 'runstderr.txt') | ForEach-Object {
-        Remove-Item ".\$_" -ErrorAction SilentlyContinue -Force
+    @("buildstdout_$actionRun.txt", "buildstderr_$actionRun.txt", "runstdout_$actionRun.txt", "runstderr_$actionRun.txt") | ForEach-Object {
+        Remove-Item "$($env:TEMP)\$_" -ErrorAction SilentlyContinue -Force
     }
 
     # Clean up workingDir
     if (-not ($PreserveWorkingDir.IsPresent)) {
         Remove-Item $WorkingDir -Recurse -Force
     } else {
-        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value Get-Item $WorkingDir
+        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDir)
     }
+    $out
     $InformationPreference = $ip
 }
