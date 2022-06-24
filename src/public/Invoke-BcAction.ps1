@@ -78,6 +78,10 @@ Function Invoke-BcAction {
     # Remove settings.json
     Remove-Item $sPath -Force
 
+    if (Test-Path "$($env:TEMP)\action.app") {
+        Remove-Item "$($env:TEMP)\action.app" -Force
+    }
+
     # Run Action
     $runSplat = @{
         Path                   = 'cmd.exe'
