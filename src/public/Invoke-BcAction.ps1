@@ -36,7 +36,7 @@ Function Invoke-BcAction {
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
         $sPath = "$path\settings.json"
-        $Path = "$Path\manifest.txt"
+        $Path = "$((Resolve-Path $Path).Path)\manifest.txt"
     } else {
         $sPath = "$(Split-Path $path)\settings.json"
     }
@@ -62,6 +62,10 @@ Function Invoke-BcAction {
         }
     }
 
+    if (Test-Path "$($env:TEMP)\action.app") {
+        Remove-Item "$($env:TEMP)\action.app" -Force
+    }
+
     # Build Action
     $buildSplat = @{
         Path                   = 'cmd.exe'
@@ -83,10 +87,6 @@ Function Invoke-BcAction {
     # Remove settings.json
     Remove-Item $sPath -Force
 
-    if (Test-Path "$($env:TEMP)\action.app") {
-        Remove-Item "$($env:TEMP)\action.app" -Force
-    }
-
     # Run Action
     $runSplat = @{
         Path                   = 'cmd.exe'
@@ -102,8 +102,13 @@ Function Invoke-BcAction {
 
     # Stream std.out
     While (-not (Test-Path $WorkingDir\std.out)) {
+        $runStdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
+        if ($runStdErr.Length -gt 0) {
+            Throw "Error in run: $runStdErr"
+        }
         Start-Sleep -Seconds 1
     }
+    Write-Verbose 'The following output is stdout from executing the action:'
     $stream = [System.IO.File]::Open("$WorkingDir\std.out", [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
     $reader = [System.IO.StreamReader]::new($stream)
     $stdOut = & {
@@ -129,7 +134,11 @@ Function Invoke-BcAction {
             Remove-Item $resultPath -Recurse -Force
         }
     }
-    Compress-Archive "$WorkingDir\results" -DestinationPath $resultPath
+    if ((Get-ChildItem $WorkingDir\results).Count -gt 0) {
+        Compress-Archive "$WorkingDir\results" -DestinationPath $resultPath
+    } else {
+        Write-Warning 'No results to be collected.'
+    }
 
     $out = [pscustomobject]@{
         Build   = @{
@@ -140,7 +149,7 @@ Function Invoke-BcAction {
             StdOut = Get-Content "$($env:TEMP)\runstdout_$actionRun.txt"
             StdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
         }
-        Results = Get-Item $resultPath
+        Results = if (Test-Path $resultPath) { Get-Item $resultPath } else { $null }
         StdOut  = $stdOut
     }
 
