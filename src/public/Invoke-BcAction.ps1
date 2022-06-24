@@ -1,6 +1,8 @@
 Function Invoke-BcAction {
     [cmdletbinding(
-        DefaultParameterSetName = 'folderAction'
+        DefaultParameterSetName = 'folderAction',
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
     )]
     param (
         [ValidateScript(
@@ -50,7 +52,13 @@ Function Invoke-BcAction {
     }
 
     if (Test-Path $WorkingDir) {
-        Remove-Item $WorkingDir -Recurse -Force
+        Write-Verbose 'The working directory already exists, clear it?'
+        if ($PSCmdlet.ShouldProcess($WorkingDir, 'Remove-Item')) {
+            Remove-Item $WorkingDir -Recurse -Force
+        } else {
+            $PSCmdlet.ShouldProcess
+            return
+        }
     }
 
     # Build Action
@@ -63,6 +71,7 @@ Function Invoke-BcAction {
         RedirectStandardError  = '.\buildstderr.txt'
         RedirectStandardOutput = '.\buildstdout.txt'
     }
+    Write-Verbose 'Building the action...'
     $actionProc = Start-Process @buildSplat -Wait
 
     # Remove settings.json
@@ -78,6 +87,7 @@ Function Invoke-BcAction {
         RedirectStandardError  = '.\runstderr.txt'
         RedirectStandardOutput = '.\runstdout.txt'
     }
+    Write-Verbose 'Running the action...'
     $actionProc = Start-Process @runSplat
 
     # Stream std.out
@@ -103,6 +113,12 @@ Function Invoke-BcAction {
 
     # Collect results
     $resultPath = "$($env:TEMP)\actiontest_results.zip"
+    if (Test-Path $resultPath) {
+        Write-Verbose 'The results file already exists, overwrite?'
+        if ($PSCmdlet.ShouldProcess($resultPath, 'Remove-Item')) {
+            Remove-Item $resultPath -Recurse -Force
+        }
+    }
     Compress-Archive "$($env:TEMP)\actiontest\results" -DestinationPath $resultPath
 
     [pscustomobject]@{
@@ -125,7 +141,7 @@ Function Invoke-BcAction {
 
     # Clean up workingDir
     if (-not ($PreserveWorkingDir.IsPresent)) {
-        remove-Item $WorkingDir -Recurse -Force
+        Remove-Item $WorkingDir -Recurse -Force
     }
     $InformationPreference = $ip
 }
