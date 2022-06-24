@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plasterManifest schemaVersion="1.1"
+    templateType="Project"
+    xmlns="http://www.microsoft.com/schemas/PowerShell/Plaster/v1">
+    <metadata>
+        <name>BrazenCloudPowershellResident</name>
+        <id>8b154a29-aaa6-4eaa-83a5-a48d4a664da3</id>
+        <version>0.0.1</version>
+        <title>BrazenCloudPowershellResident</title>
+        <description>Scaffolds a BrazenCloud PowerShell Resident</description>
+        <author>Anthony Howell</author>
+        <tags>PowerShell, BrazenCloud, Resident</tags>
+    </metadata>
+    <parameters>
+        <parameter name='ResidentName'
+            type='text'
+            prompt='Name of the Resident'/>
+    </parameters>
+    <content>
+        <message>
+            Creating folder structure
+        </message>
+        <file source=''
+            destination='${PLASTER_PARAM_ResidentName}'/>
+        <file source=''
+            destination='${PLASTER_PARAM_ResidentName}/windows'/>
+        <file source=''
+            destination='${PLASTER_PARAM_ResidentName}/linux'/>
+        <message>
+            Deploying common files
+        </message>
+        <file source='..\PowerShellAction\parameters.json'
+            destination='${PLASTER_PARAM_ResidentName}/parameters.json'/>
+        <file source='..\PowerShellAction\repository.json'
+            destination='${PLASTER_PARAM_ResidentName}/repository.json'/>
+        <file source='execution.json'
+            destination='${PLASTER_PARAM_ResidentName}/execution.json'/>
+        <file source='..\PowerShellAction\powershell-manifest.txt'
+            destination='${PLASTER_PARAM_ResidentName}/manifest.txt'/>
+        <file source='..\PowerShellAction\script.ps1'
+            destination='${PLASTER_PARAM_ResidentName}/windows/script.ps1'/>
+        <file source='..\PowerShellAction\script.ps1'
+            destination='${PLASTER_PARAM_ResidentName}/linux/script.ps1'/>
+    </content>
+</plasterManifest>

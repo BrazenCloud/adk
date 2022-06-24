@@ -1,6 +1,8 @@
 Function Invoke-BcAction {
     [cmdletbinding(
-        DefaultParameterSetName = 'folderAction'
+        DefaultParameterSetName = 'folderAction',
+        SupportsShouldProcess,
+        ConfirmImpact = 'High'
     )]
     param (
         [ValidateScript(
@@ -23,9 +25,10 @@ Function Invoke-BcAction {
             ParameterSetName = 'folderAction'
         )]
         [string]$UtilityPath,
-        [string]$WorkingDir,
+        [string]$WorkingDirectory,
         [hashtable]$Settings,
-        [switch]$PreserveWorkingDir
+        [switch]$PreserveWorkingDirectory,
+        [switch]$IgnoreRequiredParameters
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
@@ -34,7 +37,7 @@ Function Invoke-BcAction {
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
         $sPath = "$path\settings.json"
-        $Path = "$Path\manifest.txt"
+        $Path = "$((Resolve-Path $Path).Path)\manifest.txt"
     } else {
         $sPath = "$(Split-Path $path)\settings.json"
     }
@@ -45,12 +48,35 @@ Function Invoke-BcAction {
     Join-BcSettingsHashtable @splat | ConvertTo-Json | Out-File $sPath
 
     # If no working dir is passed, use something in TEMP
+    $actionRun = "Action_$(Get-Date -UFormat %s)"
     if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
-        $WorkingDir = "$($env:TEMP)\actiontest"
+        $WorkingDir = "$($env:TEMP)\$actionRun"
     }
 
     if (Test-Path $WorkingDir) {
-        Remove-Item $WorkingDir -Recurse -Force
+        Write-Verbose 'The working directory already exists, clear it?'
+        if ($PSCmdlet.ShouldProcess($WorkingDir, 'Remove-Item')) {
+            Remove-Item $WorkingDir -Recurse -Force
+        } else {
+            $PSCmdlet.ShouldProcess
+            return
+        }
+    }
+
+    if (Test-Path "$($env:TEMP)\action.app") {
+        Remove-Item "$($env:TEMP)\action.app" -Force
+    }
+
+    if (-not $IgnoreRequiredParameters.IsPresent) {
+        $parametersPath = "$(Split-Path $Path)\parameters.json"
+        if (Test-Path $parametersPath) {
+            $params = Get-Content $parametersPath | ConvertFrom-Json
+            $params | Where-Object { $_.PSObject.Properties.Name -contains 'IsOptional' } | Where-Object { $_.IsOptional.ToString() -eq 'false' } | ForEach-Object {
+                if ($Settings.Keys -notcontains $_.Name) {
+                    Throw "Mandatory parameter: '$($_.Name)' was not provided. Pass a value via -Settings or use -IgnoreRequiredParameters"
+                }
+            }
+        }
     }
 
     # Build Action
@@ -60,10 +86,16 @@ Function Invoke-BcAction {
         WorkingDirectory       = (Split-Path $UtilityPath)
         WindowStyle            = 'Hidden'
         PassThru               = $true
-        RedirectStandardError  = '.\buildstderr.txt'
-        RedirectStandardOutput = '.\buildstdout.txt'
+        RedirectStandardError  = "$($env:TEMP)\buildstderr_$actionRun.txt"
+        RedirectStandardOutput = "$($env:TEMP)\buildstdout_$actionRun.txt"
     }
+    Write-Verbose 'Building the action...'
     $actionProc = Start-Process @buildSplat -Wait
+
+    $buildStdErr = Get-Content "$($env:TEMP)\buildstderr_$actionRun.txt"
+    if ($buildStdErr.Length -gt 0) {
+        Throw "Error in build: $buildStdErr"
+    }
 
     # Remove settings.json
     Remove-Item $sPath -Force
@@ -75,15 +107,21 @@ Function Invoke-BcAction {
         WorkingDirectory       = $agentPath
         WindowStyle            = 'Hidden'
         PassThru               = $true
-        RedirectStandardError  = '.\runstderr.txt'
-        RedirectStandardOutput = '.\runstdout.txt'
+        RedirectStandardError  = "$($env:TEMP)\runstderr_$actionRun.txt"
+        RedirectStandardOutput = "$($env:TEMP)\runstdout_$actionRun.txt"
     }
+    Write-Verbose 'Running the action...'
     $actionProc = Start-Process @runSplat
 
     # Stream std.out
     While (-not (Test-Path $WorkingDir\std.out)) {
+        $runStdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
+        if ($runStdErr.Length -gt 0) {
+            Throw "Error in run: $runStdErr"
+        }
         Start-Sleep -Seconds 1
     }
+    Write-Verbose 'The following output is stdout from executing the action:'
     $stream = [System.IO.File]::Open("$WorkingDir\std.out", [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
     $reader = [System.IO.StreamReader]::new($stream)
     $stdOut = & {
@@ -102,30 +140,43 @@ Function Invoke-BcAction {
     $reader.Close()
 
     # Collect results
-    $resultPath = "$($env:TEMP)\actiontest_results.zip"
-    Compress-Archive "$($env:TEMP)\actiontest\results" -DestinationPath $resultPath
+    $resultPath = "$($env:TEMP)\Results_$actionRun.zip"
+    if (Test-Path $resultPath) {
+        Write-Verbose 'The results file already exists, overwrite?'
+        if ($PSCmdlet.ShouldProcess($resultPath, 'Remove-Item')) {
+            Remove-Item $resultPath -Recurse -Force
+        }
+    }
+    if ((Get-ChildItem $WorkingDir\results).Count -gt 0) {
+        Compress-Archive "$WorkingDir\results" -DestinationPath $resultPath
+    } else {
+        Write-Warning 'No results to be collected.'
+    }
 
-    [pscustomobject]@{
+    $out = [pscustomobject]@{
         Build   = @{
-            StdOut = Get-Content .\buildstdout.txt
-            StdErr = Get-Content .\buildstderr.txt
+            StdOut = Get-Content "$($env:TEMP)\buildstdout_$actionRun.txt"
+            StdErr = Get-Content "$($env:TEMP)\buildstderr_$actionRun.txt"
         }
         Run     = @{
-            StdOut = Get-Content .\runstdout.txt
-            StdErr = Get-Content .\runstderr.txt
+            StdOut = Get-Content "$($env:TEMP)\runstdout_$actionRun.txt"
+            StdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
         }
-        Results = Get-Item $resultPath
+        Results = if (Test-Path $resultPath) { Get-Item $resultPath } else { $null }
         StdOut  = $stdOut
     }
 
     # Clean up redirects
-    @('buildstdout.txt', 'buildstderr.txt', 'runstdout.txt', 'runstderr.txt') | ForEach-Object {
-        Remove-Item ".\$_" -ErrorAction SilentlyContinue -Force
+    @("buildstdout_*.txt", "buildstderr_*.txt", "runstdout_*.txt", "runstderr_*.txt") | ForEach-Object {
+        Remove-Item "$($env:TEMP)\$_" -ErrorAction SilentlyContinue -Force
     }
 
     # Clean up workingDir
     if (-not ($PreserveWorkingDir.IsPresent)) {
-        remove-Item $WorkingDir -Recurse -Force
+        Remove-Item $WorkingDir -Recurse -Force
+    } else {
+        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDir)
     }
+    $out
     $InformationPreference = $ip
 }

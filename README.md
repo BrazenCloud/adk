@@ -75,6 +75,19 @@ If you run into any problems using the ADK, please reach out to our [Support Tea
 
 ## Changelog
 
+### 0.1.0
+
+- Added templates for PowerShell based Actions
+- `Invoke-BcAction` improvements:
+  - Dynamically generates unique working directory
+  - Improved path handling to account for relative paths (fixes #1)
+  - Improved results handling
+  - Improved redirection file handling
+  - Halts on build or run errors
+  - Implemented should process
+  - Checks for mandatory parameters
+  - Adds the generated working directory to the output if `-PreserveWorkingDirectory` is used
+
 ### 0.0.2
 
 - Improves the `settings.json` impersonation to include values from the local system.
