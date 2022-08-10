@@ -49,7 +49,7 @@ Function Invoke-BcAction {
 
     # If no working dir is passed, use something in TEMP
     $actionRun = "Action_$(Get-Date -UFormat %s)"
-    if ($PSBoundParameters.Key -notcontains 'WorkingDir') {
+    if ($PSBoundParameters.Key -notcontains 'WorkingDirectory') {
         $WorkingDir = "$($env:TEMP)\$actionRun"
     }
 
@@ -172,7 +172,7 @@ Function Invoke-BcAction {
     }
 
     # Clean up workingDir
-    if (-not ($PreserveWorkingDir.IsPresent)) {
+    if (-not ($PreserveWorkingDirectory.IsPresent)) {
         Remove-Item $WorkingDir -Recurse -Force
     } else {
         $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDir)
