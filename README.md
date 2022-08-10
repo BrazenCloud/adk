@@ -75,6 +75,10 @@ If you run into any problems using the ADK, please reach out to our [Support Tea
 
 ## Changelog
 
+### 0.1.1
+
+- Fixed `PreserveWorkingDirectory` and `WorkingDirectory` parameters.
+
 ### 0.1.0
 
 - Added templates for PowerShell based Actions
