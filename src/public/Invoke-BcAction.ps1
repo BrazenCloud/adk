@@ -28,11 +28,14 @@ Function Invoke-BcAction {
         [string]$WorkingDirectory,
         [hashtable]$Settings,
         [switch]$PreserveWorkingDirectory,
-        [switch]$IgnoreRequiredParameters
+        [switch]$IgnoreRequiredParameters,
+        [switch]$SkipMissingParameters
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
     $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
+
+    $WorkingDirectory = (Resolve-Path $WorkingDirectory).Path
 
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
@@ -40,6 +43,19 @@ Function Invoke-BcAction {
         $Path = "$((Resolve-Path $Path).Path)\manifest.txt"
     } else {
         $sPath = "$(Split-Path $path)\settings.json"
+    }
+    if (-not $SkipMissingParameters.IsPresent) {
+        if ($PSBoundParameters.Keys -notcontains 'Settings') {
+            $Settings = @{}
+        }
+        $parametersPath = "$(Split-Path $Path)\parameters.json"
+        if (Test-Path $parametersPath) {
+            foreach ($param in (Get-Content $parametersPath | ConvertFrom-Json)) {
+                if ($Settings.Keys -notcontains $param.Name) {
+                    $Settings[$param.Name] = $null
+                }
+            }
+        }
     }
     $splat = @{
         AgentPath  = $agentPath
@@ -49,14 +65,16 @@ Function Invoke-BcAction {
 
     # If no working dir is passed, use something in TEMP
     $actionRun = "Action_$(Get-Date -UFormat %s)"
-    if ($PSBoundParameters.Key -notcontains 'WorkingDirectory') {
-        $WorkingDir = "$($env:TEMP)\$actionRun"
+    if ($PSBoundParameters.Keys -notcontains 'WorkingDirectory') {
+        $WorkingDirectory = "$($env:TEMP)\$actionRun"
     }
 
-    if (Test-Path $WorkingDir) {
+    Write-Host $WorkingDirectory
+
+    if (Test-Path $WorkingDirectory) {
         Write-Verbose 'The working directory already exists, clear it?'
-        if ($PSCmdlet.ShouldProcess($WorkingDir, 'Remove-Item')) {
-            Remove-Item $WorkingDir -Recurse -Force
+        if ($PSCmdlet.ShouldProcess($WorkingDirectory, 'Remove-Item')) {
+            Remove-Item $WorkingDirectory -Recurse -Force
         } else {
             $PSCmdlet.ShouldProcess
             return
@@ -103,7 +121,7 @@ Function Invoke-BcAction {
     # Run Action
     $runSplat = @{
         Path                   = 'cmd.exe'
-        ArgumentList           = "/C .\runner.exe run --action_zip $($env:TEMP)\action.app --path $WorkingDir"
+        ArgumentList           = "/C .\runner.exe run --action_zip $($env:TEMP)\action.app --path $WorkingDirectory"
         WorkingDirectory       = $agentPath
         WindowStyle            = 'Hidden'
         PassThru               = $true
@@ -114,7 +132,7 @@ Function Invoke-BcAction {
     $actionProc = Start-Process @runSplat
 
     # Stream std.out
-    While (-not (Test-Path $WorkingDir\std.out)) {
+    While (-not (Test-Path $WorkingDirectory\std.out)) {
         $runStdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
         if ($runStdErr.Length -gt 0) {
             Throw "Error in run: $runStdErr"
@@ -122,7 +140,7 @@ Function Invoke-BcAction {
         Start-Sleep -Seconds 1
     }
     Write-Verbose 'The following output is stdout from executing the action:'
-    $stream = [System.IO.File]::Open("$WorkingDir\std.out", [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+    $stream = [System.IO.File]::Open("$WorkingDirectory\std.out", [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
     $reader = [System.IO.StreamReader]::new($stream)
     $stdOut = & {
         while ($null -ne ($line = $reader.ReadLine())) {
@@ -147,8 +165,8 @@ Function Invoke-BcAction {
             Remove-Item $resultPath -Recurse -Force
         }
     }
-    if ((Get-ChildItem $WorkingDir\results).Count -gt 0) {
-        Compress-Archive "$WorkingDir\results" -DestinationPath $resultPath
+    if ((Get-ChildItem $WorkingDirectory\results).Count -gt 0) {
+        Compress-Archive "$WorkingDirectory\results" -DestinationPath $resultPath
     } else {
         Write-Warning 'No results to be collected.'
     }
@@ -171,11 +189,11 @@ Function Invoke-BcAction {
         Remove-Item "$($env:TEMP)\$_" -ErrorAction SilentlyContinue -Force
     }
 
-    # Clean up workingDir
+    # Clean up WorkingDirectory
     if (-not ($PreserveWorkingDirectory.IsPresent)) {
-        Remove-Item $WorkingDir -Recurse -Force
+        Remove-Item $WorkingDirectory -Recurse -Force
     } else {
-        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDir)
+        $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDirectory)
     }
     $out
     $InformationPreference = $ip
