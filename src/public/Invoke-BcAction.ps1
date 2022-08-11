@@ -155,7 +155,14 @@ Function Invoke-BcAction {
                 $line
                 Write-Information $line
             }
-            Start-Sleep -Seconds 1
+            Start-Sleep -Milliseconds 100
+        }
+        while (-not $reader.EndOfStream) {
+            while ($null -ne ($line = $reader.ReadLine())) {
+                $line
+                Write-Information $line
+            }
+            Start-Sleep -Milliseconds 100
         }
     }
     $reader.Close()
