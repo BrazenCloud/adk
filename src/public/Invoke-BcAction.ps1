@@ -35,8 +35,6 @@ Function Invoke-BcAction {
     $InformationPreference = 'Continue'
     $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
 
-    $WorkingDirectory = (Resolve-Path $WorkingDirectory).Path
-
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
         $sPath = "$path\settings.json"
@@ -52,7 +50,11 @@ Function Invoke-BcAction {
         if (Test-Path $parametersPath) {
             foreach ($param in (Get-Content $parametersPath | ConvertFrom-Json)) {
                 if ($Settings.Keys -notcontains $param.Name) {
-                    $Settings[$param.Name] = $null
+                    if ($param.DefaultValue.Length -gt 0) {
+                        $Settings[$param.Name] = $param.DefaultValue
+                    } else {
+                        $Settings[$param.Name] = ''
+                    }
                 }
             }
         }
@@ -69,8 +71,6 @@ Function Invoke-BcAction {
         $WorkingDirectory = "$($env:TEMP)\$actionRun"
     }
 
-    Write-Host $WorkingDirectory
-
     if (Test-Path $WorkingDirectory) {
         Write-Verbose 'The working directory already exists, clear it?'
         if ($PSCmdlet.ShouldProcess($WorkingDirectory, 'Remove-Item')) {
@@ -80,6 +80,9 @@ Function Invoke-BcAction {
             return
         }
     }
+    New-Item $WorkingDirectory -ItemType Directory | Out-Null
+
+    $WorkingDirectory = (Resolve-Path $WorkingDirectory).Path
 
     if (Test-Path "$($env:TEMP)\action.app") {
         Remove-Item "$($env:TEMP)\action.app" -Force
