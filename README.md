@@ -75,6 +75,13 @@ If you run into any problems using the ADK, please reach out to our [Support Tea
 
 ## Changelog
 
+### 0.2.0
+
+- Fixed WorkingDirectory checks and now properly outputs it to the output variable.
+- Improved stdout capture. There were cases where some lines were not captured.
+- Prevents reading settings json errors by supplying empty strings for any passed parameters
+  - Prevent this with `-SkipMissingParameters`
+
 ### 0.1.1
 
 - Fixed `PreserveWorkingDirectory` and `WorkingDirectory` parameters.
