@@ -42,13 +42,17 @@ Function Invoke-BcAction {
     } else {
         $sPath = "$(Split-Path $path)\settings.json"
     }
+
+    $parametersPath = "$(Split-Path $Path)\parameters.json"
+    $parameters = Get-Content $parametersPath | ConvertFrom-Json
+    if ($PSBoundParameters.Keys -notcontains 'Settings') {
+        $Settings = @{}
+    }
+
+    # Build settings with empty string parameters
     if (-not $SkipMissingParameters.IsPresent) {
-        if ($PSBoundParameters.Keys -notcontains 'Settings') {
-            $Settings = @{}
-        }
-        $parametersPath = "$(Split-Path $Path)\parameters.json"
         if (Test-Path $parametersPath) {
-            foreach ($param in (Get-Content $parametersPath | ConvertFrom-Json)) {
+            foreach ($param in $parameters) {
                 if ($Settings.Keys -notcontains $param.Name) {
                     if ($param.DefaultValue.Length -gt 0) {
                         $Settings[$param.Name] = $param.DefaultValue
@@ -59,6 +63,13 @@ Function Invoke-BcAction {
             }
         }
     }
+
+    foreach ($key in $Settings.Keys) {
+        if ($parameters.Name -notcontains $key) {
+            Write-Warning "Passed parameter '$key' is not a valid parameter."
+        }
+    }
+
     $splat = @{
         AgentPath  = $agentPath
         Parameters = $Settings
@@ -89,10 +100,8 @@ Function Invoke-BcAction {
     }
 
     if (-not $IgnoreRequiredParameters.IsPresent) {
-        $parametersPath = "$(Split-Path $Path)\parameters.json"
         if (Test-Path $parametersPath) {
-            $params = Get-Content $parametersPath | ConvertFrom-Json
-            $params | Where-Object { $_.PSObject.Properties.Name -contains 'IsOptional' } | Where-Object { $_.IsOptional.ToString() -eq 'false' } | ForEach-Object {
+            $parameters | Where-Object { $_.PSObject.Properties.Name -contains 'IsOptional' } | Where-Object { $_.IsOptional.ToString() -eq 'false' } | ForEach-Object {
                 if ($Settings.Keys -notcontains $_.Name) {
                     Throw "Mandatory parameter: '$($_.Name)' was not provided. Pass a value via -Settings or use -IgnoreRequiredParameters"
                 }
