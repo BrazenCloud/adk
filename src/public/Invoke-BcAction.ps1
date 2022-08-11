@@ -214,6 +214,8 @@ Function Invoke-BcAction {
     } else {
         $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDirectory)
     }
+
+    New-BcActionInvokeReport -InvocationData $out
     $out
     $InformationPreference = $ip
 }
