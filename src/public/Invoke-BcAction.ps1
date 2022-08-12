@@ -187,7 +187,7 @@ Function Invoke-BcAction {
     if ((Get-ChildItem $WorkingDirectory\results).Count -gt 0) {
         Compress-Archive "$WorkingDirectory\results" -DestinationPath $resultPath
     } else {
-        Write-Warning 'No results to be collected.'
+        Write-Verbose 'No results to be collected.'
     }
 
     $out = [pscustomobject]@{
