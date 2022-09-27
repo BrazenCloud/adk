@@ -1,6 +1,5 @@
 Function Invoke-BcAction {
     [cmdletbinding(
-        DefaultParameterSetName = 'folderAction',
         SupportsShouldProcess,
         ConfirmImpact = 'High'
     )]
@@ -16,15 +15,9 @@ Function Invoke-BcAction {
         )]
         [Parameter(
             Mandatory,
-            ParameterSetName = 'folderAction',
             HelpMessage = 'Path must be a manifest.txt file or a folder containing one.'
         )]
         [string]$Path,
-        [Parameter(
-            Mandatory,
-            ParameterSetName = 'folderAction'
-        )]
-        [string]$UtilityPath,
         [string]$WorkingDirectory,
         [hashtable]$Settings,
         [switch]$PreserveWorkingDirectory,
@@ -33,7 +26,9 @@ Function Invoke-BcAction {
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
-    $agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
+    #$agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
+    $agentPath = $NodeAgentPath.FullName
+    $UtilityPath = "$($NodeAgentPath.FullName)\runway.exe"
 
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {

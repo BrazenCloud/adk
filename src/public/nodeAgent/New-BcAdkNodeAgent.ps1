@@ -21,7 +21,6 @@ Function New-BcAdkNodeAgent {
         }
         Push-Location
         Set-Location $PSScriptRoot
-        Get-Location
         $global:BrazenCloudAdkNodeAgentId = (New-Guid).Guid
         $global:NodeAgentProcess = [System.Diagnostics.Process]::new()
         $NodeAgentProcess.StartInfo.RedirectStandardOutput = $true
@@ -30,8 +29,8 @@ Function New-BcAdkNodeAgent {
         $NodeAgentProcess.StartInfo.WindowStyle = 'Hidden'
         $NodeAgentProcess.StartInfo.WorkingDirectory = $PSScriptRoot
         $NodeAgentProcess.StartInfo.FileName = "runway.exe"
-        $NodeAgentProcess.Start()
-        Pop-Location
+        $NodeAgentProcess.Start() | Out-Null
+        Pop-Location | Out-Null
         
         $noDir = $true
         $x = 0
@@ -49,5 +48,6 @@ Function New-BcAdkNodeAgent {
                 $noDir = $false
             }
         }
+        Write-Host "Node initiated at: '$($NodeAgentPath)'"
     }
 }
