@@ -44,9 +44,13 @@ Function Invoke-BcAction {
     }
 
     $parametersPath = "$(Split-Path $Path)\parameters.json"
-    $parameters = Get-Content $parametersPath | ConvertFrom-Json
-    if ($PSBoundParameters.Keys -notcontains 'Settings') {
-        $Settings = @{}
+    if (Test-Path $parametersPath) {
+        $parameters = Get-Content $parametersPath | ConvertFrom-Json
+        if ($PSBoundParameters.Keys -notcontains 'Settings') {
+            $Settings = @{}
+        }
+    } else {
+        Write-Warning 'The action has no parameters.'
     }
 
     # Build settings with empty string parameters
