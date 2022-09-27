@@ -40,7 +40,7 @@ Install the module and prerequisites. Add this to your `launch.json` configurati
 }
 ```
 
-Now you can `F5` while in a manifest.txt to have it execute in the integrated console.
+Now you can `F5` while in a manifest.txt to have it execute in the integrated console. **And this works for all actions, not just PowerShell actions!**
 
 Be aware that in current state, this will only run the action with default parameters.
 
