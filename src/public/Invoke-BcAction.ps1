@@ -26,7 +26,11 @@ Function Invoke-BcAction {
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
-    #$agentPath = Get-BcAgentInstallPath -AsString | Select-Object -First 1
+    
+    if (-not (Get-BcAdkNodeAgent).IsRunning) {
+        New-BcAdkNodeAgent
+    }
+
     $agentPath = $NodeAgentPath.FullName
     $UtilityPath = "$($NodeAgentPath.FullName)\runway.exe"
 
@@ -185,7 +189,7 @@ Function Invoke-BcAction {
         Write-Verbose 'No results to be collected.'
     }
 
-    $out = [pscustomobject]@{
+    $global:out = [pscustomobject]@{
         Build   = @{
             StdOut = Get-Content "$($env:TEMP)\buildstdout_$actionRun.txt"
             StdErr = Get-Content "$($env:TEMP)\buildstderr_$actionRun.txt"
