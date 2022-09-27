@@ -1,4 +1,5 @@
 Function Invoke-BcAction {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '')]
     [cmdletbinding(
         SupportsShouldProcess,
         ConfirmImpact = 'High'
@@ -26,9 +27,9 @@ Function Invoke-BcAction {
     )
     $ip = $InformationPreference
     $InformationPreference = 'Continue'
-    
+
     if (-not (Get-BcAdkNodeAgent).IsRunning) {
-        New-BcAdkNodeAgent
+        Start-BcAdkNodeAgent
     }
 
     $agentPath = $NodeAgentPath.FullName
@@ -214,7 +215,7 @@ Function Invoke-BcAction {
         $out | Add-Member -MemberType NoteProperty -Name 'WorkingDirectory' -Value (Get-Item $WorkingDirectory)
     }
 
-    New-BcActionInvokeReport -InvocationData $out
+    Out-BcActionInvokeReport -InvocationData $out
     $out
     $InformationPreference = $ip
 }

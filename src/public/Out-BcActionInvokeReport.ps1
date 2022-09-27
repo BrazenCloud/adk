@@ -1,4 +1,5 @@
-Function New-BcActionInvokeReport {
+Function Out-BcActionInvokeReport {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
     [cmdletbinding()]
     param (
         [psobject]$InvocationData
@@ -6,7 +7,7 @@ Function New-BcActionInvokeReport {
 
     $str = @'
 -------------------------------------------------------------
- ____                           ____ _                 _ 
+ ____                           ____ _                 _
 | __ ) _ __ __ _ _______ _ __  / ___| | ___  _   _  __| |
 |  _ \| '__/ _` |_  / _ \ '_ \| |   | |/ _ \| | | |/ _` |
 | |_) | | | (_| |/ /  __/ | | | |___| | (_) | |_| | (_| |

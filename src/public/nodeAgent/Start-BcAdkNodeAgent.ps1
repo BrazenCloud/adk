@@ -1,5 +1,6 @@
-Function New-BcAdkNodeAgent {
-    [cmdletbinding()]
+Function Start-BcAdkNodeAgent {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
+    [cmdletbinding(SupportsShouldProcess)]
     param (
 
     )
@@ -21,7 +22,7 @@ Function New-BcAdkNodeAgent {
         }
         Push-Location
         Set-Location $PSScriptRoot
-        $global:BrazenCloudAdkNodeAgentId = (New-Guid).Guid
+        $script:BrazenCloudAdkNodeAgentId = (New-Guid).Guid
         $script:NodeAgentProcess = [System.Diagnostics.Process]::new()
         $NodeAgentProcess.StartInfo.RedirectStandardOutput = $true
         $NodeAgentProcess.StartInfo.RedirectStandardError = $true
@@ -31,7 +32,7 @@ Function New-BcAdkNodeAgent {
         $NodeAgentProcess.StartInfo.FileName = "runway.exe"
         $NodeAgentProcess.Start() | Out-Null
         Pop-Location | Out-Null
-        
+
         $noDir = $true
         $x = 0
         While ($noDir) {
@@ -43,11 +44,11 @@ Function New-BcAdkNodeAgent {
             }
             Start-Sleep -Seconds 1
             $x++
-            if ($x -ge 5 -or $NodeAgentProcess.HasExited) {
+            if (($x -ge 5 -or $NodeAgentProcess.HasExited) -and $noDir) {
                 Throw 'Node failed to start.'
                 $noDir = $false
             }
         }
-        Write-Host "Node initiated at: '$($NodeAgentPath)'"
+        Write-Information "Node initiated at: '$($NodeAgentPath)'"
     }
 }
