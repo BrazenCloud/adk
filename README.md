@@ -40,6 +40,8 @@ Install the module and prerequisites. Add this to your `launch.json` configurati
 }
 ```
 
+Now you can `F5` while in a manifest.txt to have it execute in the integrated console.
+
 Be aware that in current state, this will only run the action with default parameters.
 
 If you wish to pass parameters to the Action when you execute it, you can do so with:
@@ -50,22 +52,7 @@ Invoke-BcAction -Path <path to manifest> -Settings @{parameterName='value',param
 
 ## Usage
 
-Currenty the ADK supports 2 use cases:
-
-- Finding the installed BrazenAgent path
-- Testing an unpublished Action locally
-
-To find the installed BrazenAgent paths:
-
-```PowerShell
-# Return as a DirectoryInfo object
-Get-BcAgentInstallPath
-
-# Return as a string
-Get-BcAgentInstallPath -AsString
-```
-
-To test an unpublished Action locally, you need to have the BrazenCloud utility downloaded, then you can run the Action with:
+To test an unpublished Action locally, you need to have the BrazenCloud PowerShell module installed, then you can:
 
 ```powershell
 # Build a hashtable of the parameters you want to pass
@@ -74,14 +61,37 @@ $settings = @{
     'Output Type' = 'json'
 }
 # Path is the path to the action folder or manifest file
-# UtilityPath is the path to the BrazenCloud utility
 # PreserveWorkingDir prevents the cmdlet from clearing out the Action's working directory
-$out = Invoke-BcAction -Path C:\path\to\action -UtilityPath C:\path\to\runway.exe -Settings $settings -PreserveWorkingDir
+$out = Invoke-BcAction -Path C:\path\to\action -Settings $settings -PreserveWorkingDir
 ```
 
 ### Output
 
-Running `Invoke-BcAction` produces a custom `PSObject` that has the following properties:
+Running `Invoke-BcAction` will display a report and a custom `PSObject`.
+
+The report will look similar to:
+
+```plaintext
+-------------------------------------------------------------
+ ____                           ____ _                 _
+| __ ) _ __ __ _ _______ _ __  / ___| | ___  _   _  __| |
+|  _ \| '__/ _` |_  / _ \ '_ \| |   | |/ _ \| | | |/ _` |
+| |_) | | | (_| |/ /  __/ | | | |___| | (_) | |_| | (_| |
+|____/|_|  \__,_/___\___|_| |_|\____|_|\___/ \__,_|\__,_|
+-------------------------------------------------------------
+Action Invocation Report
+-------------------------------------------------------------
+Build Process:  No Errors
+Run Process:    No Errors
+Action Output:  52 lines of stdout. View with '$Out.StdOut'
+Results:        No results.
+
+Build            Run              Results StdOut
+-----            ---              ------- ------
+{StdErr, StdOut} {StdErr, StdOut}         {, Windows IP Configuration, , …}
+```
+
+The information should clarify what is in the `PSObject`, but if you need more details, you can reference these properties for the `$out` variable that is automatically created:
 
 ```json
 {
@@ -102,6 +112,8 @@ Running `Invoke-BcAction` produces a custom `PSObject` that has the following pr
 - The `Run` property contains the stderr and stdout from running the Action using `runner run`
 - The `Results` property contains the `FileInfo` object for the results file.
 - The `StdOut` property contains the entire stdout for the Action execution.
+
+You can manually capture the output in a variable or you can use the automatic variable: `$out`:
 
 ## Problems
 
