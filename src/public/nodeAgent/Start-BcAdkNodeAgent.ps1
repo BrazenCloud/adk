@@ -37,8 +37,11 @@ Function Start-BcAdkNodeAgent {
         $NodeAgentProcess.StartInfo.WindowStyle = 'Hidden'
         $NodeAgentProcess.StartInfo.WorkingDirectory = $PSScriptRoot
         $NodeAgentProcess.StartInfo.FileName = "runway.exe"
+        $env:Path = "$($env:Path);$PSScriptRoot"
         $NodeAgentProcess.Start() | Out-Null
-        Pop-Location | Out-Null
+        if ($Host.Name -ne 'Visual Studio Code Host') {
+            Pop-Location | Out-Null
+        }
 
         $noDir = $true
         $x = 0
@@ -55,6 +58,9 @@ Function Start-BcAdkNodeAgent {
                 Throw 'Node failed to start.'
                 $noDir = $false
             }
+        }
+        if ($Host.Name -eq 'Visual Studio Code Host') {
+            Pop-Location | Out-Null
         }
         Write-Information "Node initiated at: '$($NodeAgentPath)'"
     }

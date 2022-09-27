@@ -32,8 +32,8 @@ Function Invoke-BcAction {
         Start-BcAdkNodeAgent
     }
 
-    $agentPath = $NodeAgentPath.FullName
-    $UtilityPath = "$($NodeAgentPath.FullName)\runway.exe"
+    $agentPath = (Get-BcAdkNodeAgent).Path.FullName
+    $UtilityPath = "$agentPath\runway.exe"
 
     # If the path is a folder, append manifest.txt
     if (Test-Path $Path -PathType Container) {
@@ -112,8 +112,7 @@ Function Invoke-BcAction {
     # Build Action
     $buildSplat = @{
         Path                   = 'cmd.exe'
-        ArgumentList           = "/C .\runway.exe -N build -i $Path -o $($env:TEMP)\action.app"
-        WorkingDirectory       = (Split-Path $UtilityPath)
+        ArgumentList           = "/C `"$UtilityPath`" -N build -i $Path -o $($env:TEMP)\action.app"
         WindowStyle            = 'Hidden'
         PassThru               = $true
         RedirectStandardError  = "$($env:TEMP)\buildstderr_$actionRun.txt"
