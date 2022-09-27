@@ -8,7 +8,14 @@ Function Start-BcAdkNodeAgent {
         try {
             Get-BcAuthenticationCurrentUser -ErrorAction Stop | Out-Null
         } catch {
-            Throw "Unauthorized. Authenticate using 'Connect-BrazenCloud' first."
+            Write-Information 'Please authenticate to BrazenCloud.'
+            Write-Information "If you need to connect to an alternate BrazenCloud instance, use 'Connect-BrazenCloud -Domain <domain>.'"
+            Connect-BrazenCloud
+        }
+        try {
+            Get-BcAuthenticationCurrentUser -ErrorAction Stop | Out-Null
+        } catch {
+            Throw 'Not authenticated.'
         }
         $tokenSplat = @{
             Expiration = (Get-Date).AddMinutes(30)
