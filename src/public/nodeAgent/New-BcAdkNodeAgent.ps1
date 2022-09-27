@@ -3,7 +3,7 @@ Function New-BcAdkNodeAgent {
     param (
 
     )
-    if (-not (Get-BcAdkNodeAgent)) {
+    if (-not (Get-BcAdkNodeAgent).IsRunning) {
         try {
             Get-BcAuthenticationCurrentUser -ErrorAction Stop | Out-Null
         } catch {
@@ -22,10 +22,10 @@ Function New-BcAdkNodeAgent {
         Push-Location
         Set-Location $PSScriptRoot
         $global:BrazenCloudAdkNodeAgentId = (New-Guid).Guid
-        $global:NodeAgentProcess = [System.Diagnostics.Process]::new()
+        $script:NodeAgentProcess = [System.Diagnostics.Process]::new()
         $NodeAgentProcess.StartInfo.RedirectStandardOutput = $true
         $NodeAgentProcess.StartInfo.RedirectStandardError = $true
-        $NodeAgentProcess.StartInfo.Arguments = @('-S', $env:BrazenCloudDomain, 'node', '-t', $token.Token, '--customid', $BrazenCloudAdkNodeAgentId)
+        $NodeAgentProcess.StartInfo.Arguments = @('-S', $env:BrazenCloudDomain, 'node', '-t', $token.Token, '--customid', $BrazenCloudAdkNodeAgentId, '--new')
         $NodeAgentProcess.StartInfo.WindowStyle = 'Hidden'
         $NodeAgentProcess.StartInfo.WorkingDirectory = $PSScriptRoot
         $NodeAgentProcess.StartInfo.FileName = "runway.exe"
@@ -37,14 +37,14 @@ Function New-BcAdkNodeAgent {
         While ($noDir) {
             Get-ChildItem -Directory | ForEach-Object {
                 if ($_.Name -match '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$') {
-                    $global:NodeAgentPath = Get-Item $_.FullName
+                    $script:NodeAgentPath = Get-Item $_.FullName
                     $noDir = $false
                 }
             }
             Start-Sleep -Seconds 1
             $x++
-            if ($x -ge 10 -or $NodeAgentProcess.HasExited) {
-                Write-Host 'Node failed to start.'
+            if ($x -ge 5 -or $NodeAgentProcess.HasExited) {
+                Throw 'Node failed to start.'
                 $noDir = $false
             }
         }
