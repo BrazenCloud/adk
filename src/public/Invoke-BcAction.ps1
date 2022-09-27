@@ -203,7 +203,7 @@ Function Invoke-BcAction {
             StdErr = Get-Content "$($env:TEMP)\runstderr_$actionRun.txt"
         }
         Results = if (Test-Path $resultPath) { Get-Item $resultPath } else { $null }
-        StdOut  = $stdOut
+        Output  = $stdOut
     }
 
     # Clean up redirects

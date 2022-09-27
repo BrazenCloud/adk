@@ -35,7 +35,7 @@ Action Invocation Report
     }
 
     Write-Host "Action Output:  " -NoNewline
-    Write-Host "$($InvocationData.StdOut.Count) lines of stdout. View with '`$Out.StdOut'" -ForegroundColor Green
+    Write-Host "$($InvocationData.Output.Count) lines of output. View with '`$Out.Output'" -ForegroundColor Green
 
     Write-Host "Results:        " -NoNewline
     If ($InvocationData.Results.Length -gt 0) {

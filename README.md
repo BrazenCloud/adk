@@ -83,10 +83,10 @@ Action Invocation Report
 -------------------------------------------------------------
 Build Process:  No Errors
 Run Process:    No Errors
-Action Output:  52 lines of stdout. View with '$Out.StdOut'
+Action Output:  52 lines of output. View with '$Out.Output'
 Results:        No results.
 
-Build            Run              Results StdOut
+Build            Run              Results Output
 -----            ---              ------- ------
 {StdErr, StdOut} {StdErr, StdOut}         {, Windows IP Configuration, , …}
 ```
@@ -104,14 +104,14 @@ The information should clarify what is in the `PSObject`, but if you need more d
         "StdOut": ""
     },
     "Results": "",
-    "StdOut": ""
+    "Output": ""
 }
 ```
 
 - The `Build` property contains the stderr and stdout from building the Action using `runway build`
 - The `Run` property contains the stderr and stdout from running the Action using `runner run`
 - The `Results` property contains the `FileInfo` object for the results file.
-- The `StdOut` property contains the entire stdout for the Action execution.
+- The `Output` property contains the entire output (stdout and stderr) for the Action execution.
 
 You can manually capture the output in a variable or you can use the automatic variable: `$out`:
 
