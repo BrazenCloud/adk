@@ -33,7 +33,7 @@
     Description       = 'BrazenCloud''s PowerShell Action Development Toolkit'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    PowerShellVersion = '7.2'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''
