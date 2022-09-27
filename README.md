@@ -1,17 +1,51 @@
 # BrazenCloud Powershell Action Developer Kit
 
-[![Runway](https://img.shields.io/powershellgallery/v/BrazenCloud.ADK.svg?style=flat-square&label=BrazenCloud.ADK "BrazenCloud.ADK")](https://www.powershellgallery.com/packages/BrazenCloud.ADK/)
+[![BrazenCloud.ADK](https://img.shields.io/powershellgallery/v/BrazenCloud.ADK.svg?style=flat-square&label=BrazenCloud.ADK "BrazenCloud.ADK")](https://www.powershellgallery.com/packages/BrazenCloud.ADK/)
 
 BrazenCloud's Action Developer Kit provides many useful functions for streamlining Action development.
+
+**Though this ADK is written in PowerShell, it will execute ANY BrazenCloud action.**
 
 You can check out our [Action development guide in the documentation](https://docs.runway.host/runway-documentation/action-developer-guides/overview)
 
 ## Install the module
 
+**You must have PowerShell 7.2+**
+
+**Linux Supporting coming soon**
+
+Install the prerequisite module from the PowerShell Gallery:
+
+```powershell
+Install-Module BrazenCloud
+```
+
 The module can be installed from the PowerShell Gallery:
 
 ```powershell
 Install-Module BrazenCloud.ADK
+```
+
+## Configure for use with VS Code
+
+Install the module and prerequisites. Add this to your `launch.json` configuration:
+
+```json
+{
+    "name": "Launch BrazenCloud Action",
+    "type": "PowerShell",
+    "request": "launch",
+    "script": "Invoke-BcAction -Path ${file}",
+    "cwd": "${workspaceFolder}"
+}
+```
+
+Be aware that in current state, this will only run the action with default parameters.
+
+If you wish to pass parameters to the Action when you execute it, you can do so with:
+
+```powershell
+Invoke-BcAction -Path <path to manifest> -Settings @{parameterName='value',parameter2='blah'}
 ```
 
 ## Usage
