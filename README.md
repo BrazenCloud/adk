@@ -77,6 +77,8 @@ If you run into any problems using the ADK, please reach out to our [Support Tea
 
 ### 0.2.0
 
+- No longer requires an installed BrazenCloud agent. Instead, it will launch a temporary [node](https://docs.runway.host/runway-documentation/general-concepts/what-is-a-brazenagent#temporary-node-brazenagents) agent.
+- Now requires PowerShell 7.2+
 - Added a basic report that displays after the action completes execution.
 - Fixed WorkingDirectory checks and now properly outputs it to the output variable.
 - Improved stdout capture. There were cases where some lines were not captured.
